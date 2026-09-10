@@ -27,7 +27,7 @@
   .move{width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:#fafafa;cursor:pointer}
   .move:disabled{opacity:.3;cursor:default}
   .actions{display:flex;justify-content:center;margin:26px 0}
-  .primary{border:0;background:var(--accent);color:white;font-weight:700;padding:14px 24px;border-radius:12px;cursor:pointer;font-size:1.05rem}
+  .primary{border:0;background:var(--accent);color:white;font-weight:700;padding:14px 24px;border-radius:12px;cursor:pointer;font-size:1.05rem}.secondary{border:1px solid var(--accent);background:white;color:var(--accent);font-weight:700;padding:12px 20px;border-radius:12px;cursor:pointer;font-size:1rem}
   .result{display:none;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px;margin:24px 0 40px}
   .scores{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
   .score{border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
@@ -48,11 +48,11 @@
 <div class="wrap">
   <header>
     <h1>Evaluación de Estilos de Personalidad</h1>
-    <p class="lead">En cada pregunta, ordena las cuatro opciones desde la que <strong>MÁS se parece a ti</strong> hasta la que <strong>MENOS se parece a ti</strong>.</p>
+    <p class="lead">En cada pregunta, ordena las cuatro opciones según qué tanto se parecen a ti: <strong>4 = MÁS parecido a mí</strong> y <strong>1 = MENOS parecido a mí</strong>.</p>
   </header>
 
   <div class="notice">
-    <strong>Cómo responder:</strong> usa las flechas para mover cada frase. La primera posición vale 4 puntos, la segunda 3, la tercera 2 y la cuarta 1.
+    <strong>Cómo responder:</strong> usa las flechas ↑ y ↓ para ordenar las frases. <strong>4 = la que MÁS se parece a ti</strong>, 3 = la siguiente, 2 = la siguiente y <strong>1 = la que MENOS se parece a ti</strong>.
   </div>
 
   <main id="questions"></main>
@@ -68,6 +68,7 @@
     <div id="dominant"></div>
     <p class="small"><strong>Importante:</strong> Estas son descripciones generales y puede que no le describan completamente. Ya que todos somos una mezcla de los cuatro estilos de personalidad, usted puede tener algunas características de otros estilos diferentes a su estilo de personalidad sobresaliente.</p>
     <p class="small"><em>Encuentro Matrimonial Mundial</em></p>
+    <div class="actions"><button class="secondary" id="restartBtn" type="button">Volver a realizar el ejercicio</button></div>
   </section>
 
   <p class="privacy">Este ejercicio se calcula únicamente en tu dispositivo. Esta página no guarda ni envía tus respuestas.</p>
@@ -188,6 +189,12 @@ function calculate() {
 }
 
 document.getElementById('calcBtn').addEventListener('click', calculate);
+document.getElementById('restartBtn').addEventListener('click', () => {
+  state.splice(0, state.length, ...QUESTIONS.map(q => q[1].map(x => ({code:x[0], text:x[1]}))));
+  document.getElementById('result').style.display = 'none';
+  render();
+  window.scrollTo({top:0, behavior:'smooth'});
+});
 render();
 </script>
 </body>
