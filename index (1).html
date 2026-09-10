@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evaluación de Estilos de Personalidad</title>
+<style>
+  :root {
+    --bg:#f7f5f2; --card:#ffffff; --text:#222; --muted:#6b6b6b;
+    --accent:#8f1d1d; --accent2:#d4a62a; --border:#e3ded7;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.45}
+  .wrap{max-width:920px;margin:auto;padding:20px}
+  header{text-align:center;padding:18px 8px 8px}
+  h1{margin:.2rem 0;font-size:clamp(1.7rem,4vw,2.5rem)}
+  .lead{max-width:760px;margin:10px auto;color:var(--muted)}
+  .notice{background:#fff8df;border:1px solid #ead79c;padding:12px 14px;border-radius:12px;margin:16px 0}
+  .question{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin:16px 0;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  .question h2{font-size:1.08rem;margin:0 0 12px}
+  .ranklist{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+  .rankitem{display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--border);border-radius:12px;background:#fff}
+  .pos{font-weight:700;text-align:center;color:var(--accent)}
+  .txt{min-width:0}
+  .moves{display:flex;gap:6px}
+  button{font:inherit}
+  .move{width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:#fafafa;cursor:pointer}
+  .move:disabled{opacity:.3;cursor:default}
+  .actions{display:flex;justify-content:center;margin:26px 0}
+  .primary{border:0;background:var(--accent);color:white;font-weight:700;padding:14px 24px;border-radius:12px;cursor:pointer;font-size:1.05rem}.secondary{border:1px solid var(--accent);background:white;color:var(--accent);font-weight:700;padding:12px 20px;border-radius:12px;cursor:pointer;font-size:1rem}
+  .result{display:none;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px;margin:24px 0 40px}
+  .scores{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
+  .score{border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+  .score strong{display:block;font-size:1.6rem;color:var(--accent)}
+  .dominant{border-left:5px solid var(--accent2);padding:10px 14px;background:#fffaf0;margin:18px 0;border-radius:8px}
+  .desc{white-space:pre-line}
+  .small{font-size:.92rem;color:var(--muted)}
+  .privacy{text-align:center;color:var(--muted);font-size:.88rem;margin:12px 0 30px}
+  @media(max-width:640px){
+    .wrap{padding:12px}
+    .scores{grid-template-columns:repeat(2,1fr)}
+    .rankitem{grid-template-columns:32px 1fr auto;padding:10px}
+    .move{width:34px;height:34px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Evaluación de Estilos de Personalidad</h1>
+    <p class="lead">En cada pregunta, ordena las cuatro opciones según qué tanto se parecen a ti: <strong>4 = MÁS parecido a mí</strong> y <strong>1 = MENOS parecido a mí</strong>.</p>
+  </header>
+
+  <div class="notice">
+    <strong>Cómo responder:</strong> usa las flechas ↑ y ↓ para ordenar las frases. <strong>4 = la que MÁS se parece a ti</strong>, 3 = la siguiente, 2 = la siguiente y <strong>1 = la que MENOS se parece a ti</strong>.
+  </div>
+
+  <main id="questions"></main>
+
+  <div class="actions">
+    <button class="primary" id="calcBtn">Ver mis resultados</button>
+  </div>
+
+  <section class="result" id="result">
+    <h2>Resultados de tu Estilo de Personalidad</h2>
+    <p>Todos somos una mezcla de los cuatro estilos. La puntuación más alta corresponde al estilo sobresaliente.</p>
+    <div class="scores" id="scores"></div>
+    <div id="dominant"></div>
+    <p class="small"><strong>Importante:</strong> Estas son descripciones generales y puede que no le describan completamente. Ya que todos somos una mezcla de los cuatro estilos de personalidad, usted puede tener algunas características de otros estilos diferentes a su estilo de personalidad sobresaliente.</p>
+    <p class="small"><em>Encuentro Matrimonial Mundial</em></p>
+    <div class="actions"><button class="secondary" id="restartBtn" type="button">Volver a realizar el ejercicio</button></div>
+  </section>
+
+  <p class="privacy">Este ejercicio se calcula únicamente en tu dispositivo. Esta página no guarda ni envía tus respuestas.</p>
+</div>
+
+<script>
+const QUESTIONS = [["1. Mis cualidades personales de las que estoy más consciente son...", [["S", "amable, compasivo y atento"], ["O", "fortaleza y capacidad"], ["A", "pensativo y claro"], ["M", "espontáneo y entusiasta"]]], ["2. El valor o principio más importante para mí es...", [["S", "la amistad y estar en buena relación"], ["O", "la responsabilidad y el respeto"], ["A", "tener la razón"], ["M", "la libertad"]]], ["3. Me atrae la gente que es...", [["S", "cooperadora y amigable"], ["O", "responsable y trabajadora"], ["A", "cumplidora y tranquila"], ["M", "divertida y original"]]], ["4. Quiero que otros me vean como...", [["S", "cariñoso y agradable"], ["O", "digno de confianza, inteligente y eficiente"], ["A", "lógico y confiado"], ["M", "experto y único"]]], ["5. Cuando me siento deprimido me veo...", [["S", "sin valor y poco que ofrecer"], ["O", "derrotado y fracasado"], ["A", "confundido y descontrolado"], ["M", "como un perdedor"]]], ["6. Tiendo a tomar decisiones de acuerdo a...", [["S", "lo que me dicta mi corazón"], ["O", "las reglas establecidas"], ["A", "análisis cuidadoso y considerado"], ["M", "mi estado de ánimo"]]], ["7. La forma en que consigo que la gente coopere es...", [["S", "creando amistad y armonía con ellos"], ["O", "con convencimiento y dirección"], ["A", "con influencia, conversación y lógica"], ["M", "motivando y siendo creativo"]]], ["8. Me siento más satisfecho conmigo mismo cuando...", [["S", "ayudo a la gente a que esté contenta"], ["O", "termino de hacer las cosas"], ["A", "cuando aconsejo y ayudo a los demás"], ["M", "hago que las cosas sucedan"]]], ["9. ¿Cómo reacciono cuando me critican?", [["S", "me retiro y no lo enfrento"], ["O", "lo enfrento y me defiendo"], ["A", "analizo la situación y los motivos"], ["M", "ignoro y sigo adelante"]]], ["10. Cuando estoy presionado tiendo a...", [["S", "huir y darme por vencido"], ["O", "redoblar mis esfuerzos"], ["A", "discutir y analizar"], ["M", "retar y confrontar"]]]];
+const DESCRIPTIONS = {"S": "Para el servicial el valor más importante es estar en buena relación con los demás. El servicial es una persona que necesita a la gente y le encanta relacionarse con los demás. Generalmente entiende los sentimientos de los demás y es intuitivo y compasivo. En las relaciones promueve la paz y trabaja para obtener cooperación, pertenencia y armonía.\n\nEs muy importante para el servicial que lo vean como genuino y cariñoso. El servicial, generalmente tiende ver lo positivo en cualquier situación. Es leal, confiable, brinda apoyo y le preocupa más lo que podría ser que lo que es.", "O": "El organizador hace las cosas. Tiende a ser muy responsable, casi siempre está preparado y sigue las reglas. El organizador tiende a hacer una lista para saber cuándo está terminado el trabajo. Si las cosas están desorganizadas y sin estructura, el organizador necesita organizarlas y estructurarlas. Tiende a ser perfeccionista y confiable, estable y sensible. En general, no le agradan muchos cambios, ya que prefiere que las cosas sean predecibles y ordenadas. Tiende a mirar el pasado para basar sus decisiones y ver cómo se han hecho las cosas anteriormente (tradición). Entre sus mayores talentos están su sentido del orden y el dar seguimiento a las cosas. El organizador casi siempre hará el trabajo primero y, si hay tiempo, considerará el placer o la diversión.", "A": "El analista disfruta las ideas y quiere entender. Los analistas disfrutan analizando situaciones y tienden a ser observadores silenciosos. En general, el analista es independiente y está más relacionado con pensamientos e ideas que con emociones.\n\nSeguirán las reglas si estas reglas tienen sentido y son lógicas. El analista tiene la necesidad de ser competente y de acumular conocimientos. Disfruta el debate y la discusión de ideas.\n\nUsualmente, el analista tiende a ser perfeccionista y se le hace difícil aceptar sus propios errores. Es un gran planificador porque trabaja tratando de considerar todas las posibilidades.", "M": "El motivador disfruta ser libre, espontáneo y juguetón. El motivador por lo general es directo en sus acciones, le gusta ser el centro de atención, y le gusta tomar riesgos. Le gusta la acción y estar envuelto en las cosas aquí y ahora. Le gusta estar involucrado y hacer que las cosas pasen. Disfruta de la competencia y le gusta la variedad. Se aburre fácilmente y busca el cambio solamente para hacer las cosas más interesantes y emocionantes. Disfruta el reto y tiende a hacer las cosas a su manera y a menudo es visto como impulsivo. Piensa que las reglas y la estructura lo limitan; es admirado por su espontaneidad y naturaleza extrovertida."};
+const NAMES = {"S": "Servicial", "O": "Organizador", "A": "Analista", "M": "Motivador"};
+
+const state = QUESTIONS.map(q => q[1].map(x => ({code:x[0], text:x[1]})));
+
+function render() {
+  const root = document.getElementById('questions');
+  root.innerHTML = '';
+  QUESTIONS.forEach((q, qi) => {
+    const box = document.createElement('section');
+    box.className = 'question';
+    const h = document.createElement('h2');
+    h.textContent = q[0];
+    box.appendChild(h);
+
+    const ul = document.createElement('ul');
+    ul.className = 'ranklist';
+
+    state[qi].forEach((item, idx) => {
+      const li = document.createElement('li');
+      li.className = 'rankitem';
+
+      const pos = document.createElement('div');
+      pos.className = 'pos';
+      pos.textContent = (4 - idx);
+
+      const txt = document.createElement('div');
+      txt.className = 'txt';
+      txt.textContent = item.text;
+
+      const moves = document.createElement('div');
+      moves.className = 'moves';
+
+      const up = document.createElement('button');
+      up.className = 'move';
+      up.type = 'button';
+      up.textContent = '↑';
+      up.title = 'Subir';
+      up.setAttribute('aria-label','Subir esta opción');
+      up.disabled = idx === 0;
+      up.onclick = () => move(qi, idx, -1);
+
+      const down = document.createElement('button');
+      down.className = 'move';
+      down.type = 'button';
+      down.textContent = '↓';
+      down.title = 'Bajar';
+      down.setAttribute('aria-label','Bajar esta opción');
+      down.disabled = idx === 3;
+      down.onclick = () => move(qi, idx, 1);
+
+      moves.append(up, down);
+      li.append(pos, txt, moves);
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+    root.appendChild(box);
+  });
+}
+
+function move(qi, idx, delta) {
+  const j = idx + delta;
+  if (j < 0 || j >= state[qi].length) return;
+  [state[qi][idx], state[qi][j]] = [state[qi][j], state[qi][idx]];
+  render();
+}
+
+function calculate() {
+  const scores = {S:0,O:0,A:0,M:0};
+  state.forEach(items => {
+    items.forEach((item, idx) => {
+      scores[item.code] += 4 - idx;
+    });
+  });
+
+  const total = Object.values(scores).reduce((a,b)=>a+b,0);
+  if (total !== 100) {
+    alert('Hubo un problema con el cálculo. Total: ' + total);
+    return;
+  }
+
+  const scoreBox = document.getElementById('scores');
+  scoreBox.innerHTML = '';
+  ['S','O','A','M'].forEach(code => {
+    const d = document.createElement('div');
+    d.className = 'score';
+    d.innerHTML = `<span>${code} — ${NAMES[code]}</span><strong>${scores[code]}</strong><span>puntos</span>`;
+    scoreBox.appendChild(d);
+  });
+
+  const max = Math.max(...Object.values(scores));
+  const winners = ['S','O','A','M'].filter(c => scores[c] === max);
+  const dom = document.getElementById('dominant');
+  dom.innerHTML = '';
+
+  winners.forEach(code => {
+    const block = document.createElement('div');
+    block.className = 'dominant';
+    const title = document.createElement('h3');
+    title.textContent = `Estilo sobresaliente: ${NAMES[code].toUpperCase()}`;
+    const p = document.createElement('p');
+    p.className = 'desc';
+    p.textContent = DESCRIPTIONS[code];
+    block.append(title,p);
+    dom.appendChild(block);
+  });
+
+  const result = document.getElementById('result');
+  result.style.display = 'block';
+  result.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+document.getElementById('calcBtn').addEventListener('click', calculate);
+document.getElementById('restartBtn').addEventListener('click', () => {
+  state.splice(0, state.length, ...QUESTIONS.map(q => q[1].map(x => ({code:x[0], text:x[1]}))));
+  document.getElementById('result').style.display = 'none';
+  render();
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+render();
+</script>
+</body>
+</html>
